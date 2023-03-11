@@ -13,6 +13,8 @@ services:
     links:
       - zookeeper
     environment:
+#      - ADVERTISED_HOST_NAME=docker.for.mac.localhost
+#      - ADVERTISED_HOST_NAME=0.0.0.0
       - ZOOKEEPER_CONNECT=zookeeper:2181
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2019-latest
@@ -36,6 +38,14 @@ services:
       - CONFIG_STORAGE_TOPIC=my_connect_configs
       - OFFSET_STORAGE_TOPIC=my_connect_offsets
       - STATUS_STORAGE_TOPIC=my_connect_statuses
+  node:
+    image: node:19-alpine
+    links:
+      - kafka
+      - sqlserver
+    volumes:
+      - .:/usr/src/app
+    entrypoint: ["tail", "-f", "/dev/null"]
 # For testing newer connector versions, unpack the connector archive into this
 # directory and uncomment the lines below
 #    volumes:
