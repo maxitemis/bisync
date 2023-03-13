@@ -1,14 +1,14 @@
 // import the `Kafka` instance from the kafkajs library
 const { Kafka } = require("kafkajs")
-const {insertNewRecord, updateRecord, listRecords, deleteRecord} = require("./mssql-connection");
+const {insertNewLegacyRecord, updateLegacyRecord, listRecords, deleteLegacyRecord} = require("./mssql-legacy-connection");
 const {createKey, isKeySet, deleteKey} = require("./redis-client");
 
 // the client ID lets kafka know who's producing the messages
-const clientId = "my-app"
+const clientId = "modern-consumer-client"
 // we can define the list of brokers in the cluster
 const brokers = ["kafka:9092"]
 // this is the topic to which we want to write messages
-const topic = "server1.testDB.dbo.customers"
+const topic = "server2.newDB.dbo.customers"
 
 // initialize a new kafka client and initialize a producer from it
 const kafka = new Kafka({ clientId, brokers })
@@ -16,13 +16,13 @@ const kafka = new Kafka({ clientId, brokers })
 const consumer = kafka.consumer({ groupId: clientId })
 
 async function causedBySyncProcess(id) {
-    if (await isKeySet(`newDBKey: ${id}`)) {
+    if (await isKeySet(`oldDBKey: ${id}`)) {
         console.log("changes is caused by other consumer, stop here");
-        await deleteKey(`newDBKey: ${id}`)
+        await deleteKey(`oldDBKey: ${id}`)
         return true;
     }
     console.log("changes is caused by application");
-    await createKey(`oldDBKey: ${id}`, "something")
+    await createKey(`newDBKey: ${id}`, "something")
     return false;
 }
 
@@ -34,10 +34,10 @@ async function applyForTestDb(parsed) {
         if (await causedBySyncProcess(parsed.payload.after['id'])) {
             return;
         }
-        await updateRecord(
+        await updateLegacyRecord(
             parsed.payload.after['id'],
-            parsed.payload.after['first_name'],
-            parsed.payload.after['last_name'],
+            parsed.payload.after['vorname'],
+            parsed.payload.after['nachname'],
             parsed.payload.after.email
         )
     } else if (operation === 'c') {
@@ -45,10 +45,10 @@ async function applyForTestDb(parsed) {
         if (await causedBySyncProcess(parsed.payload.after['id'])) {
             return;
         }
-        await insertNewRecord(
+        await insertNewLegacyRecord(
             parsed.payload.after['id'],
-            parsed.payload.after['first_name'],
-            parsed.payload.after['last_name'],
+            parsed.payload.after['vorname'],
+            parsed.payload.after['nachname'],
             parsed.payload.after.email
         );
     } else if (operation === 'd') {
@@ -56,7 +56,7 @@ async function applyForTestDb(parsed) {
         if (await causedBySyncProcess(parsed.payload.before['id'])) {
             return;
         }
-        await deleteRecord(parsed.payload.before['id'])
+        await deleteLegacyRecord(parsed.payload.before['id'])
     } else {
         console.log("unknown operation!!!");
     }
@@ -69,7 +69,7 @@ async function handleRecord(value) {
     if (!parsed) {
         console.log("warning, can not parse payload");
         return;
-    } if (parsed.payload.source.db === 'testDB') {
+    } if (parsed.payload.source.db === 'newDB') {
         await applyForTestDb(parsed);
     } else {
         console.log('source is not implemented');
@@ -83,11 +83,11 @@ const consume = async () => {
     await consumer.subscribe({ topic })
     await consumer.run({
         // this function is called every time the consumer gets a new message
-        eachMessage: ({ message }) => {
+        eachMessage: async ({ message }) => {
             // here, we just log the message to the standard output
             console.log(`received message: ${message.value}`)
 
-            handleRecord(message.value)
+            await handleRecord(message.value)
         },
     })
 }

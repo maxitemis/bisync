@@ -48,6 +48,7 @@ services:
     links:
       - kafka
       - sqlserver
+      - redis
     volumes:
       - .:/usr/src/app
     entrypoint: ["tail", "-f", "/dev/null"]

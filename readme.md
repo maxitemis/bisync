@@ -8,6 +8,7 @@ export DEBEZIUM_VERSION=2.0
 
 
 # Initialize database and insert test data
+
 cat debezium-sqlserver-init/inventory.sql | docker-compose exec -T sqlserver bash -c '/opt/mssql-tools/bin/sqlcmd -U sa -P $SA_PASSWORD'
 
 # Start SQL Server connector
@@ -19,6 +20,13 @@ docker-compose exec kafka /kafka/bin/kafka-console-consumer.sh \
     --from-beginning \
     --property print.key=true \
     --topic server1.testDB.dbo.customers
+    
+    
+docker-compose exec kafka /kafka/bin/kafka-console-consumer.sh \
+    --bootstrap-server kafka:9092 \
+    --from-beginning \
+    --property print.key=true \
+    --topic server2.newDB.dbo.customers
 
 # Modify records in the database via SQL Server client (do not forget to add `GO` command to execute the statement)
 docker-compose exec sqlserver bash -c '/opt/mssql-tools/bin/sqlcmd -U sa -P $SA_PASSWORD -d testDB'
@@ -31,7 +39,14 @@ docker-compose down
 
 ````shell
 # Initialize database and insert test data
+export DEBEZIUM_VERSION=2.0
+cat debezium-sqlserver-init/inventory.sql | docker-compose exec -T sqlserver bash -c '/opt/mssql-tools/bin/sqlcmd -U sa -P $SA_PASSWORD'
 cat debezium-sqlserver-init/new-inventory.sql | docker-compose exec -T sqlserver bash -c '/opt/mssql-tools/bin/sqlcmd -U sa -P $SA_PASSWORD'
+curl -i -X POST -H "Accept:application/json" -H  "Content-Type:application/json" http://localhost:8083/connectors/ -d @register-sqlserver.json
+curl -i -X POST -H "Accept:application/json" -H  "Content-Type:application/json" http://localhost:8083/connectors/ -d @register-sqlserver-new.json
+
+curl -i -H "Accept:application/json" -H  "Content-Type:application/json" http://localhost:8083/connectors/
+
 ````
 
 ## Manual Test 
@@ -75,13 +90,19 @@ Example was teste on Mac M1 with the latest Docker version and activated amd64 e
     - [x] use promises
     - [ ] store changes
       - [x] insert
-      - [ ] update
-      - [ ] delete
+      - [ ] setup primary key table
+      - [x] setup key forcing
+      - [x] update
+      - [x] delete
     - [ ] setup tests
 - [ ] create a bidirectional prototype
-  - [ ] create a redis database
+  - [x] register another debezium connection 
+  - [x] create a redis database
+  - [x] connect to redis database
+  - [x] write transaction logs to redis
+  - [ ] test the solution
+  - [ ] create a second consumer
   - [ ] setup domain model mapping
-  - [ ] write transaction logs to redis
   - [ ] create a second connector
 
 In this tutorial, you will always connect to Kafka from within a Docker container. 

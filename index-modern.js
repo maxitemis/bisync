@@ -1,5 +1,5 @@
-const consume = require("./src/consumer");
-const { listRecords, connect } = require("./src/mssql-connection");
+const consume = require("./src/consumer-modern");
+const { listRecords, connect } = require("./src/mssql-legacy-connection");
 const { connectRedis, disconnectRedis } = require("./src/redis-client");
 
 async function main() {
@@ -13,7 +13,6 @@ async function main() {
 
         await consume()
 
-        console.log('consumer staterd');
         // await disconnectRedis();
     } catch (err) {
         console.log(err);

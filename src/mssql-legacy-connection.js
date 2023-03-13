@@ -5,7 +5,7 @@ const config = {
     user: 'sa',
     password: 'Password!',
     server: 'sqlserver',
-    database: 'newDB',
+    database: 'testDB',
     trustServerCertificate: true
 };
 
@@ -13,7 +13,7 @@ async function connect() {
     await sql.connect(config);
 }
 
-async function insertNewRecord(id, firstName, lastName, email) {
+async function insertNewLegacyRecord(id, firstName, lastName, email) {
 
     const ps = new sql.PreparedStatement();
     ps.input('id', sql.Int);
@@ -21,11 +21,11 @@ async function insertNewRecord(id, firstName, lastName, email) {
     ps.input('lastName', sql.VarChar);
     ps.input('email', sql.VarChar);
 
-    await ps.prepare('SET IDENTITY_INSERT customers ON; INSERT INTO customers(id, vorname, nachname, email) VALUES (@id, @firstName, @lastName, @email)')
+    await ps.prepare('SET IDENTITY_INSERT customers ON; INSERT INTO customers(id, first_name, last_name, email) VALUES (@id, @firstName, @lastName, @email)')
     await ps.execute({id: id, firstName: firstName, lastName: lastName, email: email})
 }
 
-async function updateRecord(id, firstName, lastName, email) {
+async function updateLegacyRecord(id, firstName, lastName, email) {
 
     const ps = new sql.PreparedStatement();
     ps.input('id', sql.Int);
@@ -33,11 +33,11 @@ async function updateRecord(id, firstName, lastName, email) {
     ps.input('lastName', sql.VarChar);
     ps.input('email', sql.VarChar);
 
-    await ps.prepare('UPDATE customers SET vorname = @firstName, nachname = @lastName, email = @email where id = @id')
+    await ps.prepare('UPDATE customers SET first_name = @firstName, last_name = @lastName, email = @email where id = @id')
     await ps.execute({id: id, firstName: firstName, lastName: lastName, email: email})
 }
 
-async function deleteRecord(id) {
+async function deleteLegacyRecord(id) {
 
     const ps = new sql.PreparedStatement();
     ps.input('id', sql.Int);
@@ -54,5 +54,5 @@ async function listRecords() {
 }
 
 module.exports = {
-    listRecords, insertNewRecord, connect, updateRecord, deleteRecord
+    listRecords, insertNewLegacyRecord, connect, updateLegacyRecord, deleteLegacyRecord
 }
