@@ -5,7 +5,7 @@ async function main() {
     try {
         await connect();
 
-        await insertNewRecord("first name", "last name", "email25@email.com");
+        // await insertNewRecord("first name", "last name", "email25@email.com");
 
         const recors = await listRecords();
         console.log(recors);

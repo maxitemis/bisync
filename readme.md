@@ -72,8 +72,11 @@ Example was teste on Mac M1 with the latest Docker version and activated amd64 e
       - [ ] change node js docker image 
   - [x] setup mssql connection
   - [ ] write logic to store changes
-    - [ ] use promises 
-    - [ ] store changes 
+    - [x] use promises
+    - [ ] store changes
+      - [x] insert
+      - [ ] update
+      - [ ] delete
     - [ ] setup tests
 - [ ] create a bidirectional prototype
   - [ ] create a redis database
@@ -84,3 +87,28 @@ Example was teste on Mac M1 with the latest Docker version and activated amd64 e
 In this tutorial, you will always connect to Kafka from within a Docker container. 
 Any of these containers can communicate with the kafka container by linking to it. If you needed to connect to Kafka from outside of a Docker container, you would have to set the -e option to advertise the Kafka address through the Docker host (-e ADVERTISED_HOST_NAME= followed by either the IP address or resolvable host name of the Docker host).
 -e ADVERTISED_HOST_NAME=host.docker.internal
+
+new:
+customers
+id: 100
+last_order: 200
+
+orders
+id: 200
+customer_id: 100
+
+
+alt:
+customers
+id: 140
+last_order: 250
+
+orders
+id: 250
+customer_id: 140
+
+
+Problems:
+Cycle dependencies in databank
+
+how I can know the new ID?

@@ -1,6 +1,6 @@
 // import the `Kafka` instance from the kafkajs library
 const { Kafka } = require("kafkajs")
-const {insertNewRecord} = require("./mssql-connection");
+const {insertNewRecord, listRecords} = require("./mssql-connection");
 
 // the client ID lets kafka know who's producing the messages
 const clientId = "my-app"
@@ -14,6 +14,29 @@ const kafka = new Kafka({ clientId, brokers })
 
 const consumer = kafka.consumer({ groupId: clientId })
 
+function handleRecord(value) {
+    const json = "" + value;
+    const parsed = JSON.parse(json);
+    console.log("parsed payload:", parsed);
+    console.log("operation:", parsed.payload.op);
+    const operation = parsed.payload.op;
+    if (operation == 'u') {
+        console.log("update");
+    } else if (operation == 'c') {
+        console.log("insert");
+        insertNewRecord(
+            parsed.payload.after['first_name'],
+            parsed.payload.after['last_name'],
+            parsed.payload.after.email
+        );
+    } else if (operation == 'd') {
+        console.log("delete");
+    } else {
+        console.log("unknown operation!!!");
+    }
+
+}
+
 const consume = async () => {
     // first, we wait for the client to connect and subscribe to the given topic
     await consumer.connect()
@@ -23,9 +46,16 @@ const consume = async () => {
         eachMessage: ({ message }) => {
             // here, we just log the message to the standard output
             console.log(`received message: ${message.value}`)
-            insertNewRecord("first name", "last name", "email26@email.com").then(err => {
-                console.log(err)
-            });
+
+            handleRecord(message.value)
+
+            //insertNewRecord("first name", "last name", "email27@email.com").then(err => {
+            //    console.log(err)
+
+
+            //    listRecords();
+
+            //});
         },
     })
 }

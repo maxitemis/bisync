@@ -26,7 +26,8 @@ async function insertNewRecord(firstName, lastName, email) {
 async function listRecords() {
     const request = new sql.Request();
     // query to the database and get the records
-    return await request.query('select * from customers');
+    const records = await request.query('select * from customers');
+    console.log(records);
 }
 
 module.exports = {
