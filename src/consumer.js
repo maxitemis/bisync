@@ -1,5 +1,6 @@
 // import the `Kafka` instance from the kafkajs library
 const { Kafka } = require("kafkajs")
+const {insertNewRecord} = require("./mssql-connection");
 
 // the client ID lets kafka know who's producing the messages
 const clientId = "my-app"
@@ -22,6 +23,9 @@ const consume = async () => {
         eachMessage: ({ message }) => {
             // here, we just log the message to the standard output
             console.log(`received message: ${message.value}`)
+            insertNewRecord("first name", "last name", "email26@email.com").then(err => {
+                console.log(err)
+            });
         },
     })
 }

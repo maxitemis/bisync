@@ -41,7 +41,7 @@ cat debezium-sqlserver-init/new-inventory.sql | docker-compose exec -T sqlserver
 # Modify records in the database via SQL Server client (do not forget to add `GO` command to execute the statement)
 docker-compose exec sqlserver bash -c '/opt/mssql-tools/bin/sqlcmd -U sa -P $SA_PASSWORD -d testDB'
 
-# INSERT INTO customers(first_name,last_name,email) VALUES ('Roger','Poor','roger@poor.com');
+# INSERT INTO customers(first_name,last_name,email) VALUES ('Roger','Poor','roger1@poor.com');
 # UPDATE customers set first_name = 'Barry' where id = 1005;
 # DELETE FROM customers WHERE id = 5;
 #
@@ -49,6 +49,8 @@ docker-compose exec sqlserver bash -c '/opt/mssql-tools/bin/sqlcmd -U sa -P $SA_
 
 # run consumer
 docker-compose exec node node /usr/src/app/index.js
+
+docker-compose exec sqlserver bash -c '/opt/mssql-tools/bin/sqlcmd -U sa -P $SA_PASSWORD -d testDB'
 
 ```
 
@@ -63,15 +65,16 @@ Example was teste on Mac M1 with the latest Docker version and activated amd64 e
 - [ ] create a unidirectional prototype
   - [x] setup second database
   - [x] setup a [consumer](https://www.sohamkamani.com/nodejs/working-with-kafka/?utm_content=cmp-true)
-    - [ ] solve problem connection to kafka from outside and inside of container 
+    - [x] solve problem connection to kafka from outside and inside of container 
       - [ ] allow consumer connection from outside?
       - [x] run consumer from inside docker-compose?
         - `docker run --rm -v $PWD:/usr/src/app node:19-alpine node index.js` 
       - [ ] change node js docker image 
   - [x] setup mssql connection
   - [ ] write logic to store changes
+    - [ ] use promises 
+    - [ ] store changes 
     - [ ] setup tests
-    - [ ] store changes
 - [ ] create a bidirectional prototype
   - [ ] create a redis database
   - [ ] setup domain model mapping
