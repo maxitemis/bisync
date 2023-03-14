@@ -73,6 +73,14 @@ docker-compose exec sqlserver bash -c '/opt/mssql-tools/bin/sqlcmd -U sa -P $SA_
 
 Example was teste on Mac M1 with the latest Docker version and activated amd64 emulation. 
 
+## Tests
+
+````shell
+docker-compose exec node bin/sh -c "cd /usr/src/app/ && npm test" 
+````
+
+
+
 ## Todo
 
 - [x] copy an example from debezium
@@ -95,15 +103,15 @@ Example was teste on Mac M1 with the latest Docker version and activated amd64 e
       - [x] update
       - [x] delete
     - [ ] setup tests
-- [ ] create a bidirectional prototype
+- [x] create a bidirectional prototype
   - [x] register another debezium connection 
   - [x] create a redis database
   - [x] connect to redis database
   - [x] write transaction logs to redis
-  - [ ] test the solution
-  - [ ] create a second consumer
+  - [x] test the solution
+  - [x] create a second consumer
   - [ ] setup domain model mapping
-  - [ ] create a second connector
+  - [x] create a second connector
 
 In this tutorial, you will always connect to Kafka from within a Docker container. 
 Any of these containers can communicate with the kafka container by linking to it. If you needed to connect to Kafka from outside of a Docker container, you would have to set the -e option to advertise the Kafka address through the Docker host (-e ADVERTISED_HOST_NAME= followed by either the IP address or resolvable host name of the Docker host).
