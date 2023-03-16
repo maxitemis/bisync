@@ -3,12 +3,15 @@ const { Kafka } = require("kafkajs")
 const {insertNewRecord, updateRecord, listModernRecords, deleteRecord} = require("./mssql-modern-connection");
 const {createKey, isKeySet, deleteKey} = require("./redis-client");
 
+const dotenv = require('dotenv')
+dotenv.config();
+
 // the client ID lets kafka know who's producing the messages
 const clientId = "my-app"
 // we can define the list of brokers in the cluster
 const brokers = ["kafka:9092"]
 // this is the topic to which we want to write messages
-const topic = "server1.testDB.dbo.customers"
+const topic =  process.env.LEGASY_TOPIC_NAME
 
 // initialize a new kafka client and initialize a producer from it
 const kafka = new Kafka({ clientId, brokers })
@@ -68,11 +71,8 @@ async function handleRecord(value) {
     console.log("parsed payload:", parsed);
     if (!parsed) {
         console.log("warning, can not parse payload");
-        return;
-    } if (parsed.payload.source.db === 'testDB') {
-        await applyForTestDb(parsed);
     } else {
-        console.log('source is not implemented');
+        await applyForTestDb(parsed);
     }
 
 }

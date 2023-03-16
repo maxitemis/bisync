@@ -123,6 +123,18 @@ docker-compose exec node bin/sh -c "cd /usr/src/app/ && npm test"
 
 ### 
  - [x] use .env file
+ - [x] rename tables
+ - [ ] kafka topic to .env file
+ - [ ] init database for tests
+
+````shell
+docker-compose exec node bin/sh -c "cd /usr/src/app/ && node shared-modern-consumer.js"
+docker-compose exec node bin/sh -c "cd /usr/src/app/ && node shared-legacy-consumer.js"
+
+
+````
+
+VM?
  - [ ] avoid duplication
  - [ ] better testing
  - [ ] two keys table idea

@@ -8,6 +8,10 @@ const {
 } = require("../../src/mssql-legacy-connection");
 const {connectModernDatabase, getModernRecord, closeModernDatabase, updateRecord} = require("../../src/mssql-modern-connection");
 
+const dotenv = require('dotenv')
+dotenv.config();
+
+
 setDefaultTimeout(60 * 1000);
 
 let oldName, newName;
@@ -20,10 +24,10 @@ When('name in modern database changed', async function () {
 
     await connectModernDatabase(
         {
-            user: 'sa',
-            password: 'Password!',
-            server: 'sqlserver',
-            database: 'newDB',
+            user: process.env.MODERNIZED_DB_USERNAME,
+            password: process.env.MODERNIZED_DB_PASSWORD,
+            server: process.env.MODERNIZED_DB_SERVER,
+            database: process.env.MODERNIZED_DB_DATABASE,
             trustServerCertificate: true
         }
     );
@@ -43,15 +47,15 @@ When('name in modern database changed', async function () {
 Then('name in legacy database also changes', async function () {
     await connectLegacyDatabase(
         {
-            user: 'sa',
-            password: 'Password!',
-            server: 'sqlserver',
-            database: 'testDB',
+            user: process.env.LEGACY_DB_USERNAME,
+            password: process.env.LEGACY_DB_PASSWORD,
+            server: process.env.LEGACY_DB_SERVER,
+            database: process.env.LEGACY_DB_DATABASE,
             trustServerCertificate: true
         }
     );
 
-    await makeDelay(6000);
+    await makeDelay(16000);
 
     const records = await getLegacyRecord(1004);
 

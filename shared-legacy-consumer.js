@@ -1,6 +1,9 @@
 const consume = require("./src/consumer-legacy");
 const { listModernRecords, connectModernDatabase } = require("./src/mssql-modern-connection");
 const { connectRedis } = require("./src/redis-client");
+const dotenv = require('dotenv')
+dotenv.config();
+
 
 async function main() {
     try {
@@ -8,10 +11,10 @@ async function main() {
 
         await connectModernDatabase(
             {
-                user: 'sa',
-                password: 'Password!',
-                server: 'sqlserver',
-                database: 'newDB',
+                user: process.env.MODERNIZED_DB_USERNAME,
+                password: process.env.MODERNIZED_DB_PASSWORD,
+                server: process.env.MODERNIZED_DB_SERVER,
+                database: process.env.MODERNIZED_DB_DATABASE,
                 trustServerCertificate: true
             }
         );

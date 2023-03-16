@@ -3,7 +3,12 @@ const { When, Then, setDefaultTimeout } = require('@cucumber/cucumber')
 const { connectLegacyDatabase, updateLegacyRecord, getLegacyRecord, closeLegacyDatabase} = require("../../src/mssql-legacy-connection");
 const { connectModernDatabase, getModernRecord, closeModernDatabase} = require("../../src/mssql-modern-connection");
 
+const dotenv = require('dotenv')
+dotenv.config();
+
 let oldName, newName;
+
+
 
 setDefaultTimeout(60 * 1000);
 
@@ -11,10 +16,10 @@ When('name in legacy database changed', async function () {
 
     await connectLegacyDatabase(
         {
-            user: 'sa',
-            password: 'Password!',
-            server: 'sqlserver',
-            database: 'testDB',
+            user: process.env.LEGACY_DB_USERNAME,
+            password: process.env.LEGACY_DB_PASSWORD,
+            server: process.env.LEGACY_DB_SERVER,
+            database: process.env.LEGACY_DB_DATABASE,
             trustServerCertificate: true
         }
     );
@@ -40,15 +45,15 @@ async function makeDelay(ms) {
 Then('name in modernised database also changes', async function () {
     await connectModernDatabase(
         {
-            user: 'sa',
-            password: 'Password!',
-            server: 'sqlserver',
-            database: 'newDB',
+            user: process.env.MODERNIZED_DB_USERNAME,
+            password: process.env.MODERNIZED_DB_PASSWORD,
+            server: process.env.MODERNIZED_DB_SERVER,
+            database: process.env.MODERNIZED_DB_DATABASE,
             trustServerCertificate: true
         }
     );
 
-    await makeDelay(6000);
+    await makeDelay(16000);
 
     const records = await getModernRecord(1004);
 
