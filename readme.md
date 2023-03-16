@@ -73,10 +73,17 @@ docker-compose exec sqlserver bash -c '/opt/mssql-tools/bin/sqlcmd -U sa -P $SA_
 
 Example was teste on Mac M1 with the latest Docker version and activated amd64 emulation. 
 
+## Start Naive Prototype
+
+````shell
+docker-compose exec node node shared-modern-consumer.js
+docker-compose exec node node shared-legacy-consumer.js
+````
+
 ## Tests
 
 ````shell
-docker-compose exec node bin/sh -c "cd /usr/src/app/ && npm test" 
+docker-compose exec node npm test 
 ````
 
 
@@ -118,24 +125,19 @@ docker-compose exec node bin/sh -c "cd /usr/src/app/ && npm test"
 - each change creates a new object
 - each object has version
 
-- [x] create a model for the new and the old database the same way as it was for lingvy
+- [x] create a model for the new and the old database
 - [x] create a table to store mappings
 
 ### 
  - [x] use .env file
  - [x] rename tables
- - [ ] kafka topic to .env file
- - [ ] init database for tests
-
-````shell
-docker-compose exec node bin/sh -c "cd /usr/src/app/ && node shared-modern-consumer.js"
-docker-compose exec node bin/sh -c "cd /usr/src/app/ && node shared-legacy-consumer.js"
-
-
-````
+ - [x] kafka topic to .env file
+ - [ ] avoid code duplication
+ - [ ] make a new prototype with a table
 
 VM?
- - [ ] avoid duplication
+ - [ ] init database for tests
+
  - [ ] better testing
  - [ ] two keys table idea
 

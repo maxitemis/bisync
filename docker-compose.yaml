@@ -51,6 +51,7 @@ services:
       - redis
     volumes:
       - .:/usr/src/app
+    working_dir: /usr/src/app/
     entrypoint: ["tail", "-f", "/dev/null"]
 # For testing newer connector versions, unpack the connector archive into this
 # directory and uncomment the lines below
