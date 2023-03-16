@@ -1,21 +1,19 @@
 const sql = require("mssql");
 
-// config for your database
-const config = {
-    user: 'sa',
-    password: 'Password!',
-    server: 'sqlserver',
-    database: 'testDB',
-    trustServerCertificate: true
-};
+let pool;
 
-async function connect() {
-    await sql.connect(config);
+async function connectLegacyDatabase(config) {
+    const appPool = new sql.ConnectionPool(config);
+    pool = await appPool.connect();
+}
+
+async function closeLegacyDatabase() {
+    pool.close();
 }
 
 async function insertNewLegacyRecord(id, firstName, lastName, email) {
 
-    const ps = new sql.PreparedStatement();
+    const ps = new sql.PreparedStatement(pool);
     ps.input('id', sql.Int);
     ps.input('firstName', sql.VarChar);
     ps.input('lastName', sql.VarChar);
@@ -27,7 +25,7 @@ async function insertNewLegacyRecord(id, firstName, lastName, email) {
 
 async function updateLegacyRecord(id, firstName, lastName, email) {
 
-    const ps = new sql.PreparedStatement();
+    const ps = new sql.PreparedStatement(pool);
     ps.input('id', sql.Int);
     ps.input('firstName', sql.VarChar);
     ps.input('lastName', sql.VarChar);
@@ -39,20 +37,28 @@ async function updateLegacyRecord(id, firstName, lastName, email) {
 
 async function deleteLegacyRecord(id) {
 
-    const ps = new sql.PreparedStatement();
+    const ps = new sql.PreparedStatement(pool);
     ps.input('id', sql.Int);
 
     await ps.prepare('DELETE FROM customers WHERE id = @id')
     await ps.execute({id: id})
 }
 
+async function getLegacyRecord(id) {
+    const ps = new sql.PreparedStatement(pool);
+    ps.input('id', sql.Int);
+
+    await ps.prepare('select * from customers where id = @id')
+    const data = await ps.execute({id: id});
+    await ps.unprepare();
+    return data;
+}
+
 async function listRecords() {
-    const request = new sql.Request();
-    // query to the database and get the records
+    const request = new sql.Request(pool);
     const records = await request.query('select * from customers');
-    console.log(records);
 }
 
 module.exports = {
-    listRecords, insertNewLegacyRecord, connect, updateLegacyRecord, deleteLegacyRecord
+    closeLegacyDatabase, getLegacyRecord, listLegacyRecords: listRecords, insertNewLegacyRecord, connectLegacyDatabase, updateLegacyRecord, deleteLegacyRecord
 }

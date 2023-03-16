@@ -1,5 +1,9 @@
-Feature: Greeting
+Feature: Synchronisation
 
-  Scenario: Happy Case
-    When something happen
-    Then something should be done
+  Scenario: Legacy Data Changes Causing Changes On Remote Server
+    When name in legacy database changed
+    Then name in modernised database also changes
+
+  Scenario: Modern Data Changes Causing Changes On Legacy Server
+    When name in modern database changed
+    Then name in legacy database also changes

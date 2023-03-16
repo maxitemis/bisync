@@ -1,21 +1,19 @@
 const sql = require("mssql");
 
-// config for your database
-const config = {
-    user: 'sa',
-    password: 'Password!',
-    server: 'sqlserver',
-    database: 'newDB',
-    trustServerCertificate: true
-};
+let pool;
 
-async function connect() {
-    await sql.connect(config);
+async function connectModernDatabase(config) {
+    const appPool = new sql.ConnectionPool(config);
+    pool = await appPool.connect();
+}
+
+async function closeModernDatabase() {
+    pool.close();
 }
 
 async function insertNewRecord(id, firstName, lastName, email) {
 
-    const ps = new sql.PreparedStatement();
+    const ps = new sql.PreparedStatement(pool);
     ps.input('id', sql.Int);
     ps.input('firstName', sql.VarChar);
     ps.input('lastName', sql.VarChar);
@@ -27,7 +25,7 @@ async function insertNewRecord(id, firstName, lastName, email) {
 
 async function updateRecord(id, firstName, lastName, email) {
 
-    const ps = new sql.PreparedStatement();
+    const ps = new sql.PreparedStatement(pool);
     ps.input('id', sql.Int);
     ps.input('firstName', sql.VarChar);
     ps.input('lastName', sql.VarChar);
@@ -39,20 +37,28 @@ async function updateRecord(id, firstName, lastName, email) {
 
 async function deleteRecord(id) {
 
-    const ps = new sql.PreparedStatement();
+    const ps = new sql.PreparedStatement(pool);
     ps.input('id', sql.Int);
 
     await ps.prepare('DELETE FROM customers WHERE id = @id')
     await ps.execute({id: id})
 }
 
-async function listRecords() {
-    const request = new sql.Request();
-    // query to the database and get the records
-    const records = await request.query('select * from customers');
-    console.log(records);
+async function getModernRecord(id) {
+    const ps = new sql.PreparedStatement(pool);
+    ps.input('id', sql.Int);
+
+    await ps.prepare('select * from customers where id = @id')
+    const data = await ps.execute({id: id});
+    await ps.unprepare();
+    return data;
+}
+
+async function listModernRecords() {
+    const request = new sql.Request(pool);
+    return request.query('select * from customers');
 }
 
 module.exports = {
-    listRecords, insertNewRecord, connect, updateRecord, deleteRecord
+    closeModernDatabase, getModernRecord, listModernRecords, insertNewRecord, connectModernDatabase, updateRecord, deleteRecord
 }

@@ -1,9 +1,3 @@
--- Create the test database
-CREATE DATABASE testDB;
-GO
-USE testDB;
-EXEC sys.sp_cdc_enable_db;
-
 -- Create and populate our products using a single insert with many rows
 CREATE TABLE products (
                           id INTEGER IDENTITY(101,1) NOT NULL PRIMARY KEY,

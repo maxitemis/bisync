@@ -83,13 +83,13 @@ VALUES ('21-FEB-2016', 1003, 1, 107);
 EXEC sys.sp_cdc_enable_table @source_schema = 'dbo', @source_name = 'orders', @role_name = NULL, @supports_net_changes = 0;
 
 
---CREATE TABLE products (
---                          id INTEGER IDENTITY(101,1) NOT NULL PRIMARY KEY,
---                          table_name VARCHAR(255) NOT NULL,
---
---                          description VARCHAR(512),
---                          weight FLOAT
---);
+CREATE TABLE synchronization (
+    id INTEGER IDENTITY(101,1) NOT NULL PRIMARY KEY,
+    table_name VARCHAR(255) NOT NULL,
+    modernised_keys VARCHAR(512),
+    legacy_keys VARCHAR(512),
+    hash VARCHAR(512)
+);
 
 GO
 

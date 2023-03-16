@@ -15,14 +15,14 @@ cat debezium-sqlserver-init/inventory.sql | docker-compose exec -T sqlserver bas
 curl -i -X POST -H "Accept:application/json" -H  "Content-Type:application/json" http://localhost:8083/connectors/ -d @register-sqlserver.json
 
 # Consume messages from a Debezium topic
-docker-compose exec kafka /kafka/bin/kafka-console-consumer.sh \
+docker-compose exec kafka /kafka/bin/kafka-console-consumerLegacy.sh \
     --bootstrap-server kafka:9092 \
     --from-beginning \
     --property print.key=true \
     --topic server1.testDB.dbo.customers
     
     
-docker-compose exec kafka /kafka/bin/kafka-console-consumer.sh \
+docker-compose exec kafka /kafka/bin/kafka-console-consumerLegacy.sh \
     --bootstrap-server kafka:9092 \
     --from-beginning \
     --property print.key=true \
@@ -62,8 +62,8 @@ docker-compose exec sqlserver bash -c '/opt/mssql-tools/bin/sqlcmd -U sa -P $SA_
 #
 #
 
-# run consumer
-docker-compose exec node node /usr/src/app/index.js
+# run consumerLegacy
+docker-compose exec node node /usr/src/app/shared-legacy-consumerLegacy.js
 
 docker-compose exec sqlserver bash -c '/opt/mssql-tools/bin/sqlcmd -U sa -P $SA_PASSWORD -d testDB'
 
@@ -87,11 +87,11 @@ docker-compose exec node bin/sh -c "cd /usr/src/app/ && npm test"
   - [x] docker-compose and init script from repo 
 - [ ] create a unidirectional prototype
   - [x] setup second database
-  - [x] setup a [consumer](https://www.sohamkamani.com/nodejs/working-with-kafka/?utm_content=cmp-true)
+  - [x] setup a [consumerLegacy](https://www.sohamkamani.com/nodejs/working-with-kafka/?utm_content=cmp-true)
     - [x] solve problem connection to kafka from outside and inside of container 
-      - [ ] allow consumer connection from outside?
-      - [x] run consumer from inside docker-compose?
-        - `docker run --rm -v $PWD:/usr/src/app node:19-alpine node index.js` 
+      - [ ] allow consumerLegacy connection from outside?
+      - [x] run consumerLegacy from inside docker-compose?
+        - `docker run --rm -v $PWD:/usr/src/app node:19-alpine node shared-legacy-consumer-legacy.js` 
       - [ ] change node js docker image 
   - [x] setup mssql connection
   - [ ] write logic to store changes
@@ -109,32 +109,38 @@ docker-compose exec node bin/sh -c "cd /usr/src/app/ && npm test"
   - [x] connect to redis database
   - [x] write transaction logs to redis
   - [x] test the solution
-  - [x] create a second consumer
+  - [x] create a second consumerLegacy
   - [ ] setup domain model mapping
   - [x] create a second connector
 
-In this tutorial, you will always connect to Kafka from within a Docker container. 
-Any of these containers can communicate with the kafka container by linking to it. If you needed to connect to Kafka from outside of a Docker container, you would have to set the -e option to advertise the Kafka address through the Docker host (-e ADVERTISED_HOST_NAME= followed by either the IP address or resolvable host name of the Docker host).
--e ADVERTISED_HOST_NAME=host.docker.internal
+### Idea with one data model different databases
 
-new:
-customers
-id: 100
-last_order: 200
+- each change creates a new object
+- each object has version
 
-orders
-id: 200
-customer_id: 100
+- [x] create a model for the new and the old database the same way as it was for lingvy
+- [x] create a table to store mappings
 
+### 
+ - [x] use .env file
+ - [ ] avoid duplication
+ - [ ] better testing
+ - [ ] two keys table idea
 
-alt:
-customers
-id: 140
-last_order: 250
-
-orders
-id: 250
-customer_id: 140
+`````mermaid
+sequenceDiagram
+    participant Legacysystem
+    participant LegacyTopic 
+    participant Modernsystem
+    participant ModernTopic
+    Legacysystem->>LegacyTopic: Änderung veröffentlicht
+    Legacysystem->>LegacyTopic: Änderung veröffentlicht
+    LegacyTopic->>Modernsystem: Altdatenänderung auf das neue System angewendet
+    Modernsystem-->>ModernTopic: Shatten Änderung veröffentlicht
+    Modernsystem->>ModernTopic: Änderung veröffentlicht
+    ModernTopic->>Legacysystem: Neue Datenänderung, die auf das Altsystem angewendet wurde
+    Legacysystem-->>LegacyTopic: Shatten Änderung veröffentlicht
+`````
 
 
 Problems:

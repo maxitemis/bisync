@@ -1,6 +1,6 @@
 // import the `Kafka` instance from the kafkajs library
 const { Kafka } = require("kafkajs")
-const {insertNewLegacyRecord, updateLegacyRecord, listRecords, deleteLegacyRecord} = require("./mssql-legacy-connection");
+const {insertNewLegacyRecord, updateLegacyRecord, listLegacyRecords, deleteLegacyRecord} = require("./mssql-legacy-connection");
 const {createKey, isKeySet, deleteKey} = require("./redis-client");
 
 // the client ID lets kafka know who's producing the messages

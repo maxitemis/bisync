@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "bluebird": "^3.7.2",
+    "dotenv": "^16.0.3",
     "kafkajs": "^2.2.4",
     "mssql": "^9.1.1",
     "redis": "^4.6.5"
