@@ -15,21 +15,22 @@ cat debezium-sqlserver-init/inventory.sql | docker-compose exec -T sqlserver bas
 curl -i -X POST -H "Accept:application/json" -H  "Content-Type:application/json" http://localhost:8083/connectors/ -d @register-sqlserver.json
 
 # Consume messages from a Debezium topic
-docker-compose exec kafka /kafka/bin/kafka-console-consumerLegacy.sh \
+docker-compose exec kafka /kafka/bin/kafka-console-consumer.sh \
     --bootstrap-server kafka:9092 \
     --from-beginning \
     --property print.key=true \
-    --topic server1.testDB.dbo.customers
+    --topic server1.testDB.dbo.legacy_customers
     
     
-docker-compose exec kafka /kafka/bin/kafka-console-consumerLegacy.sh \
+docker-compose exec kafka /kafka/bin/kafka-console-consumer.sh \
     --bootstrap-server kafka:9092 \
     --from-beginning \
     --property print.key=true \
-    --topic server2.newDB.dbo.customers
+    --topic server2.newDB.dbo.modern_customers
 
 # Modify records in the database via SQL Server client (do not forget to add `GO` command to execute the statement)
 docker-compose exec sqlserver bash -c '/opt/mssql-tools/bin/sqlcmd -U sa -P $SA_PASSWORD -d testDB'
+docker-compose exec sqlserver bash -c '/opt/mssql-tools/bin/sqlcmd -U sa -P $SA_PASSWORD -d newDB'
 
 # Shut down the cluster
 docker-compose down
@@ -158,6 +159,27 @@ sequenceDiagram
 
 
 Problems:
-Cycle dependencies in databank
+Cycle dependencies in database
 
 how I can know the new ID?
+
+### ID Mapping Table
+
+Create a full mapping script
+
+- delete all customers
+- run a script and populate modernized database together with mapping table
+
+````shell
+# Initialize database and insert test data
+export DEBEZIUM_VERSION=2.0
+cat debezium-sqlserver-init/inventory.sql | docker-compose exec -T sqlserver bash -c '/opt/mssql-tools/bin/sqlcmd -U sa -P $SA_PASSWORD'
+cat debezium-sqlserver-init/modernized-inventory-empty.sql | docker-compose exec -T sqlserver bash -c '/opt/mssql-tools/bin/sqlcmd -U sa -P $SA_PASSWORD'
+
+
+curl -i -X POST -H "Accept:application/json" -H  "Content-Type:application/json" http://localhost:8083/connectors/ -d @register-sqlserver.json
+curl -i -X POST -H "Accept:application/json" -H  "Content-Type:application/json" http://localhost:8083/connectors/ -d @register-sqlserver-new.json
+
+curl -i -H "Accept:application/json" -H  "Content-Type:application/json" http://localhost:8083/connectors/
+
+````

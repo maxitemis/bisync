@@ -1,5 +1,5 @@
 const Customer = {
-    tableName: "customers",
+    tableName: "modern_customers",
     fields: ["vorname", "nachname", "email"]
 }
 

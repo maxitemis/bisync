@@ -4,7 +4,7 @@ class DbConnection {
 
     pool;
 
-    async open(params) {
+    async open(config) {
         const appPool = new sql.ConnectionPool(config);
         this.pool = await appPool.connect();
     }
