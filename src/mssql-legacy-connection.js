@@ -8,7 +8,7 @@ async function connectLegacyDatabase(config) {
 }
 
 async function closeLegacyDatabase() {
-    pool.close();
+    await pool.close();
 }
 
 async function insertNewLegacyRecord(id, firstName, lastName, email) {

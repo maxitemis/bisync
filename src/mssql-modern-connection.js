@@ -8,7 +8,7 @@ async function connectModernDatabase(config) {
 }
 
 async function closeModernDatabase() {
-    pool.close();
+    await pool.close();
 }
 
 async function insertNewRecord(id, firstName, lastName, email) {
