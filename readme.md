@@ -197,8 +197,8 @@ docker-compose exec node npm test
 ### Todo
 
 - [x] debug
-- [ ] refactor test to close connection
-- [ ] fix test to use email as key
+- [x] refactor test to close connection
+- [x] fix test to use email as key
 - [ ] fix test to use better timing
 - [ ] implement delete operation
 - [ ] implement insert operation

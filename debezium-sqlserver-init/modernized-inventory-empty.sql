@@ -21,7 +21,7 @@ CREATE TABLE modern_products_on_hand (
 EXEC sys.sp_cdc_enable_table @source_schema = 'dbo', @source_name = 'modern_products_on_hand', @role_name = NULL, @supports_net_changes = 0;
 -- Create some modern_customers ...
 CREATE TABLE modern_customers (
-                                  id INTEGER IDENTITY(1001,1) NOT NULL PRIMARY KEY,
+                                  id INTEGER IDENTITY(2001,1) NOT NULL PRIMARY KEY,
                                   vorname VARCHAR(255) NOT NULL,
                                   nachname VARCHAR(255) NOT NULL,
                                   email VARCHAR(255) NOT NULL UNIQUE
