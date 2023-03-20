@@ -2,6 +2,7 @@ const dotenv = require('dotenv')
 const {Kafka} = require("kafkajs");
 const crypto = require("crypto");
 const sql = require("mssql");
+const SynchronizationRepository = require("./repository/synchronization-repository");
 dotenv.config();
 
 // the client ID lets kafka know who's producing the messages
@@ -19,7 +20,7 @@ const consumerLegacy = kafka.consumer({ groupId: clientId });
 const consumerModern = kafka2.consumer({ groupId: "my-app-2" });
 
 
-async function handleModernRecordUpdate(legacyPool, modernizedPool, value) {
+async function handleModernRecordUpdate(legacyPool, modernizedPool, value, synchronizationRepository) {
     const json = "" + value;
     const parsed = JSON.parse(json);
     console.log("parsed payload:", parsed);
@@ -31,7 +32,7 @@ async function handleModernRecordUpdate(legacyPool, modernizedPool, value) {
     const operation = parsed.payload.op;
     if (operation === 'u') {
         console.log("update");
-        const mapping = await getMappingByModernizedId(modernizedPool, parsed.payload.after['id']);
+        const mapping = await synchronizationRepository.getMappingByModernizedId(parsed.payload.after['id']);
         const input = parsed.payload.after['vorname'] + '&' + parsed.payload.after['nachname'] + '&' + parsed.payload.after['email'];
         const crypto = require('crypto')
         const newHash = crypto.createHash('sha256').update(input).digest('hex');
@@ -78,26 +79,6 @@ async function updateModernRecord(pool, id, firstName, lastName, email) {
     await ps.execute({id: id, firstName: firstName, lastName: lastName, email: email})
 }
 
-async function getMappingByLegacyId(modernizedPool, legacyKey) {
-    const ps = new sql.PreparedStatement(modernizedPool);
-    ps.input('id', sql.VarChar);
-
-    await ps.prepare('select * from synchronization where legacy_keys = @id')
-    const data = await ps.execute({id: "" + legacyKey});
-    await ps.unprepare();
-    return data.recordset[0];
-}
-
-async function getMappingByModernizedId(modernizedPool, modernizedKey) {
-    const ps = new sql.PreparedStatement(modernizedPool);
-    ps.input('id', sql.VarChar);
-
-    await ps.prepare('select * from synchronization where modernized_keys = @id')
-    const data = await ps.execute({id: "" + modernizedKey});
-    await ps.unprepare();
-    return data.recordset[0];
-}
-
 async function updateHashForEntry(modernizedPool, id, newHash) {
     const psSynchronization = new sql.PreparedStatement(modernizedPool);
     psSynchronization.input('id', sql.Int);
@@ -114,7 +95,7 @@ async function updateHashForEntry(modernizedPool, id, newHash) {
     await psSynchronization.unprepare();
 }
 
-async function handleLegacyRecordUpdate(pool, value) {
+async function handleLegacyRecordUpdate(pool, value, synchronizationRepository) {
     const json = "" + value;
     const parsed = JSON.parse(json);
     console.log("parsed payload:", parsed);
@@ -126,7 +107,7 @@ async function handleLegacyRecordUpdate(pool, value) {
     const operation = parsed.payload.op;
     if (operation === 'u') {
         console.log("update");
-        const mapping = await getMappingByLegacyId(pool, parsed.payload.after['id']);
+        const mapping = await synchronizationRepository.getMappingByLegacyId(parsed.payload.after['id']);
         const input = parsed.payload.after['first_name'] + '&' + parsed.payload.after['last_name'] + '&' + parsed.payload.after['email'];
         const crypto = require('crypto')
         const newHash = crypto.createHash('sha256').update(input).digest('hex');
@@ -150,6 +131,7 @@ async function handleLegacyRecordUpdate(pool, value) {
 }
 
 const startDualConsumers = async function (legacyConnection, modernConnection) {
+    const synchronizationRepository = new SynchronizationRepository(modernConnection.pool);
     await consumerLegacy.connect()
     await consumerLegacy.subscribe({ topic: legacyTopic })
     await consumerLegacy.run({
@@ -157,7 +139,7 @@ const startDualConsumers = async function (legacyConnection, modernConnection) {
         eachMessage: ({ message }) => {
             // here, we just log the message to the standard output
             console.log(`received legacy message: ${message.value}`)
-            handleLegacyRecordUpdate(modernConnection.pool, message.value)
+            handleLegacyRecordUpdate(modernConnection.pool, message.value, synchronizationRepository)
         },
     });
 
@@ -168,7 +150,7 @@ const startDualConsumers = async function (legacyConnection, modernConnection) {
         eachMessage: ({ message }) => {
             // here, we just log the message to the standard output
             console.log(`received modern message: ${message.value}`)
-            handleModernRecordUpdate(legacyConnection.pool, modernConnection.pool, message.value)
+            handleModernRecordUpdate(legacyConnection.pool, modernConnection.pool, message.value, synchronizationRepository)
         },
     });
 }
