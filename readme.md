@@ -182,4 +182,23 @@ curl -i -X POST -H "Accept:application/json" -H  "Content-Type:application/json"
 
 curl -i -H "Accept:application/json" -H  "Content-Type:application/json" http://localhost:8083/connectors/
 
+docker-compose exec node node full-synchronization.js
+docker-compose exec node node dual-consumer.js 
+
+
+# Modify records in the database via SQL Server client (do not forget to add `GO` command to execute the statement)
+docker-compose exec sqlserver bash -c '/opt/mssql-tools/bin/sqlcmd -U sa -P $SA_PASSWORD -d testDB'
+docker-compose exec sqlserver bash -c '/opt/mssql-tools/bin/sqlcmd -U sa -P $SA_PASSWORD -d newDB'
+
+docker-compose exec node npm test 
+
 ````
+
+### Todo
+
+- [x] debug
+- [ ] refactor test to close connection
+- [ ] fix test to use email as key
+- [ ] fix test to use better timing
+- [ ] implement delete operation
+- [ ] implement insert operation
